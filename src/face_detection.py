@@ -14,9 +14,9 @@ class FaceDetection:
     exec_net=None
     device=None
 
-    def __init__(self, model_xml, extensions=None):
+    def __init__(self, model_xml):
         self.IE=IECore()
-        self.net=IENetwork(model=model_xml,weights=model_xml.replace('xml','bin'))
+        self.net=self.IE.read_network(model=model_xml,weights=model_xml.replace('xml','bin'))
 
     def __check_layers__(self):
         layers_map = self.IE.query_network(network=self.net,device_name=self.device)
@@ -40,15 +40,15 @@ class FaceDetection:
         raise NotImplementedError
 
     def preprocess_input(self, image):
-    '''
-    Before feeding the data into the model for inference,
-    you might have to preprocess it. This function is where you can do that.
-    '''
+        '''
+        Before feeding the data into the model for inference,
+        you might have to preprocess it. This function is where you can do that.
+        '''
         raise NotImplementedError
 
     def preprocess_output(self, outputs):
-    '''
-    Before feeding the output of this model to the next model,
-    you might have to preprocess the output. This function is where you can do that.
-    '''
+        '''
+        Before feeding the output of this model to the next model,
+        you might have to preprocess the output. This function is where you can do that.
+        '''
         raise NotImplementedError
