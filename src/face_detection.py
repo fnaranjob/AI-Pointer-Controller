@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 import sys
 from openvino.inference_engine import IECore
 
@@ -13,6 +14,8 @@ class FaceDetection:
     net=None
     exec_net=None
     device=None
+    INPUT_HEIGHT = 384
+    INPUT_WIDTH = 672
 
     def __init__(self, model_xml):
         self.IE=IECore()
@@ -40,11 +43,12 @@ class FaceDetection:
         raise NotImplementedError
 
     def preprocess_input(self, image):
-        '''
-        Before feeding the data into the model for inference,
-        you might have to preprocess it. This function is where you can do that.
-        '''
-        raise NotImplementedError
+
+        processed_image = np.copy(image)
+        processed_image = cv2.resize(processed_image,(FaceDetection.INPUT_WIDTH,FaceDetection.INPUT_HEIGHT))
+        processed_image = processed_image.transpose((2,0,1))
+        processed_image = processed_image.reshape(1, 3, FaceDetection.INPUT_HEIGHT, FaceDetection.INPUT_WIDTH)
+        return processed_image
 
     def preprocess_output(self, outputs):
         '''
