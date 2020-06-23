@@ -35,12 +35,15 @@ class FaceDetection:
         else:
             sys.exit("Unsupported layer found, can't continue")
 
-    def predict(self, image):
-        '''
-        TODO: You will need to complete this method.
-        This method is meant for running predictions on the input image.
-        '''
-        raise NotImplementedError
+    def predict(self, image, req_id):
+        input_name = next(iter(self.net.inputs))
+        input_dict={input_name:image}
+        request_handle=self.exec_net.start_async(request_id=req_id, inputs=input_dict)
+        return request_handle
+
+    def get_output(self, request_handle):
+        output=np.squeeze(request_handle.outputs["detection_out"])
+        return output
 
     def preprocess_input(self, image):
 
