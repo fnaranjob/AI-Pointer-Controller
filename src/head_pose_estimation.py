@@ -8,7 +8,7 @@ class HeadPoseEstimation:
     """
     Load and configure inference plugins for the specified target devices 
     and perform asynchronous infer requests.
-    Written for OpenVino's pretrained model: head-pose-estimation-adas-binary-0001
+    Written for OpenVino's pretrained model: head-pose-estimation-adas-0001
     """
     IE=None
     net=None
@@ -47,12 +47,11 @@ class HeadPoseEstimation:
         #return output
 
     def preprocess_input(self, image):
-        pass
-        #processed_image = np.copy(image)
-        #processed_image = cv2.resize(processed_image,(FaceDetection.INPUT_WIDTH,FaceDetection.INPUT_HEIGHT))
-        #processed_image = processed_image.transpose((2,0,1))
-        #processed_image = processed_image.reshape(1, 3, FaceDetection.INPUT_HEIGHT, FaceDetection.INPUT_WIDTH)
-        #return processed_image
+        processed_image = np.copy(image)
+        processed_image = cv2.resize(processed_image,(HeadPoseEstimation.INPUT_WIDTH,HeadPoseEstimation.INPUT_HEIGHT))
+        processed_image = processed_image.transpose((2,0,1))
+        processed_image = processed_image.reshape(1, 3, HeadPoseEstimation.INPUT_HEIGHT, HeadPoseEstimation.INPUT_WIDTH)
+        return processed_image
 
     def preprocess_output(self, output, threshold, img_width, img_height):
         pass
