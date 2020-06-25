@@ -53,9 +53,13 @@ class FaceDetection:
         processed_image = processed_image.reshape(1, 3, FaceDetection.INPUT_HEIGHT, FaceDetection.INPUT_WIDTH)
         return processed_image
 
-    def preprocess_output(self, outputs):
-        '''
-        Before feeding the output of this model to the next model,
-        you might have to preprocess the output. This function is where you can do that.
-        '''
-        raise NotImplementedError
+    def preprocess_output(self, output, threshold, img_width, img_height):
+        face_detections = output[output[:,1]==1]
+        face_detections = face_detections[face_detections[:,2]>=threshold]
+        boxes=[]
+        for detection in face_detections:
+            pt1=(int(detection[3]*img_width), int(detection[4]*img_height))
+            pt2=(int(detection[5]*img_width), int(detection[6]*img_height))
+            box = {'pt1':pt1 , 'pt2':pt2}
+            boxes.append(box)
+        return boxes
