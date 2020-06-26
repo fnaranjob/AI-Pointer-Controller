@@ -42,7 +42,7 @@ class FacialLandmarksDetection:
         return request_handle
 
     def get_output(self, request_handle):
-        #output=np.squeeze(request_handle.outputs["detection_out"])
+        output=np.squeeze(request_handle.outputs["95"])
         return output
 
     def preprocess_input(self, image):
