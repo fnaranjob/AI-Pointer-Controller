@@ -52,14 +52,8 @@ class FacialLandmarksDetection:
         processed_image = processed_image.reshape(1, 3, FacialLandmarksDetection.INPUT_HEIGHT, FacialLandmarksDetection.INPUT_WIDTH)
         return processed_image
 
-    def preprocess_output(self, output, threshold, img_width, img_height):
-        pass
-        #face_detections = output[output[:,1]==1]
-        #face_detections = face_detections[face_detections[:,2]>=threshold]
-        #boxes=[]
-        #for detection in face_detections:
-        #    pt1=(int(detection[3]*img_width), int(detection[4]*img_height))
-        #    pt2=(int(detection[5]*img_width), int(detection[6]*img_height))
-        #    box = {'pt1':pt1 , 'pt2':pt2}
-        #    boxes.append(box)
-        #return boxes
+    def preprocess_output(self, output, img_width, img_height):
+        eye1_pos = (int(output[0]*img_width), int(output[1]*img_height))
+        eye2_pos = (int(output[2]*img_width), int(output[3]*img_height))
+        eye_centers={'eye1':eye1_pos, 'eye2':eye2_pos}
+        return eye_centers
