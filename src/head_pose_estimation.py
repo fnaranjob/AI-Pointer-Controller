@@ -42,9 +42,8 @@ class HeadPoseEstimation:
         return request_handle
 
     def get_output(self, request_handle):
-        pass
-        #output=np.squeeze(request_handle.outputs["detection_out"])
-        #return output
+        output=request_handle.outputs
+        return output
 
     def preprocess_input(self, image):
         processed_image = np.copy(image)
@@ -53,14 +52,10 @@ class HeadPoseEstimation:
         processed_image = processed_image.reshape(1, 3, HeadPoseEstimation.INPUT_HEIGHT, HeadPoseEstimation.INPUT_WIDTH)
         return processed_image
 
-    def preprocess_output(self, output, threshold, img_width, img_height):
-        pass
-        #face_detections = output[output[:,1]==1]
-        #face_detections = face_detections[face_detections[:,2]>=threshold]
-        #boxes=[]
-        #for detection in face_detections:
-        #    pt1=(int(detection[3]*img_width), int(detection[4]*img_height))
-        #    pt2=(int(detection[5]*img_width), int(detection[6]*img_height))
-        #    box = {'pt1':pt1 , 'pt2':pt2}
-        #    boxes.append(box)
-        #return boxes
+    def preprocess_output(self, output):
+        roll=np.squeeze(output['angle_r_fc'])[()]
+        pitch=np.squeeze(output['angle_p_fc'])[()]
+        yaw=np.squeeze(output['angle_y_fc'])[()]
+        print(type(roll))
+        output_dict={'roll':roll, 'pitch':pitch, 'yaw':yaw}
+        return output_dict
