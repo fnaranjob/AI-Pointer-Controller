@@ -48,12 +48,11 @@ class GazeEstimation:
         #return output
 
     def preprocess_input(self, image):
-        pass
-        #processed_image = np.copy(image)
-        #processed_image = cv2.resize(processed_image,(FacialLandmarksDetection.INPUT_WIDTH,FacialLandmarksDetection.INPUT_HEIGHT))
-        #processed_image = processed_image.transpose((2,0,1))
-        #processed_image = processed_image.reshape(1, 3, FacialLandmarksDetection.INPUT_HEIGHT, FacialLandmarksDetection.INPUT_WIDTH)
-        #return processed_image
+        processed_image = np.copy(image)
+        processed_image = cv2.resize(processed_image,(GazeEstimation.INPUT_WIDTH,GazeEstimation.INPUT_HEIGHT))
+        processed_image = processed_image.transpose((2,0,1))
+        processed_image = processed_image.reshape(1, 3, GazeEstimation.INPUT_HEIGHT, GazeEstimation.INPUT_WIDTH)
+        return processed_image
 
     def preprocess_output(self, output, img_width, img_height):
         pass
