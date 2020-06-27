@@ -16,6 +16,9 @@ class GazeEstimation:
     device=None
     INPUT_HEIGHT = 60
     INPUT_WIDTH = 60
+    INPUT1_NAME = 'left_eye_image'
+    INPUT2_NAME = 'right_eye_image'
+    INPUT3_NAME = 'head_pose_angles'
 
     def __init__(self, model_xml):
         self.IE=IECore()
@@ -35,12 +38,11 @@ class GazeEstimation:
         else:
             sys.exit("Unsupported layer found, can't continue")
 
-    def predict(self, image, req_id):
-        pass
-        #input_name = next(iter(self.net.inputs))
-        #input_dict={input_name:image}
-        #request_handle=self.exec_net.start_async(request_id=req_id, inputs=input_dict)
-        #return request_handle
+    def predict(self, left_eye_img, right_eye_img, head_angles, req_id):
+        input3=np.array([head_angles]) 
+        input_dict={GazeEstimation.INPUT1_NAME:left_eye_img, GazeEstimation.INPUT2_NAME:right_eye_img, GazeEstimation.INPUT3_NAME:input3}
+        request_handle=self.exec_net.start_async(request_id=req_id, inputs=input_dict)
+        return request_handle
 
     def get_output(self, request_handle):
         pass
