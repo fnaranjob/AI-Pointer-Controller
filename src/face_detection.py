@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import utils
 from openvino.inference_engine import IECore
 
 
@@ -46,12 +47,7 @@ class FaceDetection:
         return output
 
     def preprocess_input(self, image):
-
-        processed_image = np.copy(image)
-        processed_image = cv2.resize(processed_image,(FaceDetection.INPUT_WIDTH,FaceDetection.INPUT_HEIGHT))
-        processed_image = processed_image.transpose((2,0,1))
-        processed_image = processed_image.reshape(1, 3, FaceDetection.INPUT_HEIGHT, FaceDetection.INPUT_WIDTH)
-        return processed_image
+        return utils.resize_image(image,FaceDetection.INPUT_HEIGHT, FaceDetection.INPUT_WIDTH)
 
     def preprocess_output(self, output, threshold, img_width, img_height):
         face_detections = output[output[:,1]==1]

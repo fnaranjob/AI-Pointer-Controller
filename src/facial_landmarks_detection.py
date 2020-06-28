@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import utils
 from openvino.inference_engine import IECore
 
 
@@ -47,11 +48,7 @@ class FacialLandmarksDetection:
         return output
 
     def preprocess_input(self, image):
-        processed_image = np.copy(image)
-        processed_image = cv2.resize(processed_image,(FacialLandmarksDetection.INPUT_WIDTH,FacialLandmarksDetection.INPUT_HEIGHT))
-        processed_image = processed_image.transpose((2,0,1))
-        processed_image = processed_image.reshape(1, 3, FacialLandmarksDetection.INPUT_HEIGHT, FacialLandmarksDetection.INPUT_WIDTH)
-        return processed_image
+        return utils.resize_image(image, FacialLandmarksDetection.INPUT_HEIGHT, FacialLandmarksDetection.INPUT_WIDTH)
 
     def preprocess_output(self, output, img_width, img_height):
         eye1_pos = (int(output[0]*img_width), int(output[1]*img_height))

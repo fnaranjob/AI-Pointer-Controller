@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import utils
 from openvino.inference_engine import IECore
 
 
@@ -46,11 +47,7 @@ class HeadPoseEstimation:
         return output
 
     def preprocess_input(self, image):
-        processed_image = np.copy(image)
-        processed_image = cv2.resize(processed_image,(HeadPoseEstimation.INPUT_WIDTH,HeadPoseEstimation.INPUT_HEIGHT))
-        processed_image = processed_image.transpose((2,0,1))
-        processed_image = processed_image.reshape(1, 3, HeadPoseEstimation.INPUT_HEIGHT, HeadPoseEstimation.INPUT_WIDTH)
-        return processed_image
+        return utils.resize_image(image, HeadPoseEstimation.INPUT_HEIGHT, HeadPoseEstimation.INPUT_WIDTH)
 
     def preprocess_output(self, output):
         roll=np.squeeze(output['angle_r_fc'])[()]
