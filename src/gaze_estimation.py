@@ -45,9 +45,8 @@ class GazeEstimation:
         return request_handle
 
     def get_output(self, request_handle):
-        pass
-        #output=np.squeeze(request_handle.outputs["95"])
-        #return output
+        output=np.squeeze(request_handle.outputs["gaze_vector"])
+        return output
 
     def preprocess_input(self, image):
         processed_image = np.copy(image)
@@ -57,6 +56,7 @@ class GazeEstimation:
         return processed_image
 
     def preprocess_output(self, output, img_width, img_height):
+        #TODO: Figure out how to extract on screen coordinates from gaze vector
         pass
         #eye1_pos = (int(output[0]*img_width), int(output[1]*img_height))
         #eye2_pos = (int(output[2]*img_width), int(output[3]*img_height))
