@@ -7,7 +7,7 @@ import utils
 from input_feeder import InputFeeder 
 from face_detection import FaceDetection
 from head_pose_estimation import HeadPoseEstimation
-import facial_landmarks_detection
+from facial_landmarks_detection import FacialLandmarksDetection
 import gaze_estimation
 
 #CONSTANTS
@@ -27,6 +27,8 @@ def build_argparser():
                         help="Path to face detection model xml")
     parser.add_argument("--head_pose_model", type=str, required=True,
                         help="Path to head pose estimation model xml")
+    parser.add_argument("--facial_landmarks_model", type=str, required=True,
+                        help="Path to facial landmarks detection model xml")
     parser.add_argument("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
     return parser
@@ -51,6 +53,15 @@ def get_head_pose(frame, model):
     processed_output=model.preprocess_output(output)
     return processed_output
 
+def get_eyes(frame, model):
+    input_height, input_width, _ = frame.shape
+    processed_frame=model.preprocess_input(frame)
+    request_handle=model.predict(processed_frame,0)
+    request_handle.wait()
+    output=model.get_output(request_handle)
+    processed_output=model.preprocess_output(output, input_width, input_height)
+    return processed_output
+
 def main():
     args = build_argparser().parse_args()
     single_image_mode = (args.input_type == 'image') 
@@ -68,6 +79,8 @@ def main():
     face_model.load_model(args.device)
     head_pose_model = HeadPoseEstimation(args.head_pose_model)
     head_pose_model.load_model(args.device)
+    facial_landmarks_model = FacialLandmarksDetection(args.facial_landmarks_model)
+    facial_landmarks_model.load_model(args.device)
 
     if not single_image_mode:
         while True:
@@ -80,8 +93,11 @@ def main():
             elif cropped_faces is None: #finished reading input feed
                 break
             elif len(cropped_faces)==1:
-                cv2.imshow('face',cropped_faces[0])
                 head_pose = get_head_pose(cropped_faces[0], head_pose_model)
+                eye_boxes = get_eyes(cropped_faces[0], facial_landmarks_model)
+                cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
+                #debugging output
+                cv2.imshow('face',cropped_eyes[1])
                 print(head_pose)
             else:
                 #TODO Handle multiple people
