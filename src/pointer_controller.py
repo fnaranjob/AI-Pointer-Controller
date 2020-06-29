@@ -30,6 +30,8 @@ def build_argparser():
     return parser
 
 def detect_face(frame, model):
+    if frame is None:
+        return None
     input_height, input_width, _ = frame.shape
     processed_frame=model.preprocess_input(frame)
     request_handle=model.predict(processed_frame,0)
@@ -63,11 +65,14 @@ def main():
             
             if cropped_faces==0: #no face detected, nothing to process
                 continue
+            elif cropped_faces is None: #finished reading input feed
+                break
             elif len(cropped_faces)==1:
                 cv2.imshow('face',cropped_faces[0])
             else:
                 #TODO Handle multiple people
                 pass
+            
             #Quit app if q is pressed
             k = cv2.waitKey(1) & 0xFF
             if k == ord('q'):
