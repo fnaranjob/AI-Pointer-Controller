@@ -6,9 +6,9 @@ from argparse import ArgumentParser
 import utils
 from input_feeder import InputFeeder 
 from face_detection import FaceDetection
+from head_pose_estimation import HeadPoseEstimation
 import facial_landmarks_detection
 import gaze_estimation
-import head_pose_estimation
 
 #CONSTANTS
 FACE_DETECTION_THRESHOLD = 0.8
@@ -25,6 +25,8 @@ def build_argparser():
     					help="Path to input, unused if input_type='cam'")
     parser.add_argument("--face_detection_model", type=str, required = True,
                         help="Path to face detection model xml")
+    parser.add_argument("--head_pose_model", type=str, required=True,
+                        help="Path to head pose estimation model xml")
     parser.add_argument("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
     return parser
@@ -40,6 +42,14 @@ def detect_face(frame, model):
     boxes=model.preprocess_output(output,FACE_DETECTION_THRESHOLD,input_width,input_height)
     return utils.crop_image(frame,boxes)
 
+def get_head_pose(frame, model):
+    input_height, input_width, _ = frame.shape
+    processed_frame=model.preprocess_input(frame)
+    request_handle=model.predict(processed_frame,0)
+    request_handle.wait()
+    output=model.get_output(request_handle)
+    processed_output=model.preprocess_output(output)
+    return processed_output
 
 def main():
     args = build_argparser().parse_args()
@@ -56,6 +66,8 @@ def main():
     #Load models
     face_model = FaceDetection(args.face_detection_model)
     face_model.load_model(args.device)
+    head_pose_model = HeadPoseEstimation(args.head_pose_model)
+    head_pose_model.load_model(args.device)
 
     if not single_image_mode:
         while True:
@@ -69,6 +81,8 @@ def main():
                 break
             elif len(cropped_faces)==1:
                 cv2.imshow('face',cropped_faces[0])
+                head_pose = get_head_pose(cropped_faces[0], head_pose_model)
+                print(head_pose)
             else:
                 #TODO Handle multiple people
                 pass
