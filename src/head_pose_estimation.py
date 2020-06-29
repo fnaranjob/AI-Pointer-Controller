@@ -49,7 +49,7 @@ class HeadPoseEstimation:
     def preprocess_input(self, image):
         return utils.resize_image(image, HeadPoseEstimation.INPUT_HEIGHT, HeadPoseEstimation.INPUT_WIDTH)
 
-    def preprocess_output(self, output):
+    def preprocess_output(self, output, threshold, img_width, img_height):
         roll=np.squeeze(output['angle_r_fc'])[()]
         pitch=np.squeeze(output['angle_p_fc'])[()]
         yaw=np.squeeze(output['angle_y_fc'])[()]

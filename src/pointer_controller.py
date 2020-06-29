@@ -33,33 +33,21 @@ def build_argparser():
                         help="Device to run inference on")
     return parser
 
-def detect_face(frame, model):
+def run_inference(frame, model):
     if frame is None:
         return None
     input_height, input_width, _ = frame.shape
     processed_frame=model.preprocess_input(frame)
-    request_handle=model.predict(processed_frame,0)
+    request_handle=model.predict(processed_frame,req_id=0)
     request_handle.wait()
     output=model.get_output(request_handle)
-    boxes=model.preprocess_output(output,FACE_DETECTION_THRESHOLD,input_width,input_height)
-    return utils.crop_image(frame,boxes)
 
-def get_head_pose(frame, model):
-    input_height, input_width, _ = frame.shape
-    processed_frame=model.preprocess_input(frame)
-    request_handle=model.predict(processed_frame,0)
-    request_handle.wait()
-    output=model.get_output(request_handle)
-    processed_output=model.preprocess_output(output)
-    return processed_output
-
-def get_eyes(frame, model):
-    input_height, input_width, _ = frame.shape
-    processed_frame=model.preprocess_input(frame)
-    request_handle=model.predict(processed_frame,0)
-    request_handle.wait()
-    output=model.get_output(request_handle)
-    processed_output=model.preprocess_output(output, input_width, input_height)
+    #not all models use all arguments passed to this method, some will be left unused, 
+    #this was done deliberately to avoid repeating code
+    processed_output=model.preprocess_output(output=output, 
+                                            threshold=FACE_DETECTION_THRESHOLD, 
+                                            img_width=input_width, 
+                                            img_height=input_height)
     return processed_output
 
 def main():
@@ -86,18 +74,19 @@ def main():
         while True:
             frame = next(input_feed.next_batch())
             
-            cropped_faces = detect_face(frame, face_model)
+            face_boxes = run_inference(frame, face_model)
+            cropped_faces = utils.crop_image(frame,face_boxes)
             
             if cropped_faces==0: #no face detected, nothing to process
                 continue
             elif cropped_faces is None: #finished reading input feed
                 break
             elif len(cropped_faces)==1:
-                head_pose = get_head_pose(cropped_faces[0], head_pose_model)
-                eye_boxes = get_eyes(cropped_faces[0], facial_landmarks_model)
+                head_pose = run_inference(cropped_faces[0], head_pose_model)
+                eye_boxes = run_inference(cropped_faces[0], facial_landmarks_model)
                 cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
                 #debugging output
-                cv2.imshow('face',cropped_eyes[1])
+                cv2.imshow('face',cropped_eyes[0])
                 print(head_pose)
             else:
                 #TODO Handle multiple people

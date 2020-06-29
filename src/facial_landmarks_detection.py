@@ -50,7 +50,7 @@ class FacialLandmarksDetection:
     def preprocess_input(self, image):
         return utils.resize_image(image, FacialLandmarksDetection.INPUT_HEIGHT, FacialLandmarksDetection.INPUT_WIDTH)
 
-    def preprocess_output(self, output, img_width, img_height):
+    def preprocess_output(self, output, threshold, img_width, img_height):
         eye1_pos = (int(output[0]*img_width), int(output[1]*img_height))
         eye2_pos = (int(output[2]*img_width), int(output[3]*img_height))
         eye_radius = img_height // FacialLandmarksDetection.EYE_RADIUS_RATIO 
