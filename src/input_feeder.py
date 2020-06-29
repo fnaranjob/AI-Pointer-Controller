@@ -8,6 +8,7 @@ Sample usage:
     feed.close()
 '''
 import cv2
+import logging as log
 from numpy import ndarray
 
 class InputFeeder:
@@ -33,15 +34,17 @@ class InputFeeder:
     def next_batch(self):
         '''
         Returns the next image from either a video file or webcam.
-        If input_type is 'image', then it returns the same image.
+        Not to be used if input_type is 'image', in that case the 
+        image can be accessed directly through the .frame attribute
         '''
-        if self.input_type == 'image':
-            return self.frame
-        else:
+        if not self.input_type == 'image':
             while True:
                 for _ in range(1):
                     _, frame=self.cap.read()
                 yield frame
+        else:
+            log.critical("Illegal call, method only supported for 'video' and 'cam' input types")
+            exit()
 
     def is_open(self):
         if self.input_type == 'video' or self.input_type == 'cam':
