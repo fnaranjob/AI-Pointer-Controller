@@ -12,6 +12,7 @@ from gaze_estimation import GazeEstimation
 
 #CONSTANTS
 FACE_DETECTION_THRESHOLD = 0.8
+FILTER_QUANTITY = 10
 
 def build_argparser():
     """
@@ -84,8 +85,22 @@ def main():
     gaze_estimation_model = GazeEstimation(args.gaze_estimation_model)
     gaze_estimation_model.load_model(args.device)
 
+    #initialize frame count for filtering
+    count = 0
+    gaze_vector_accum = [0,0,0]
+    gaze_vector_filtered = [0,0,0]
+
     if not single_image_mode:
         while True:
+
+            #filter results
+            count += 1
+            if(count>FILTER_QUANTITY):
+                gaze_vector_filtered=gaze_vector_accum/FILTER_QUANTITY
+                gaze_vector_accum=[0,0,0]
+                count=0
+
+            #process frames
             frame = next(input_feed.next_batch())
             
             face_boxes = run_inference(frame, face_model)
@@ -100,9 +115,10 @@ def main():
                 eye_boxes = run_inference(cropped_faces[0], facial_landmarks_model)
                 cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
                 gaze_vector = run_inference_gaze(cropped_eyes[0], cropped_eyes[1], head_pose, gaze_estimation_model)
+                gaze_vector_accum += gaze_vector
                 #debugging output
                 cv2.imshow('face',cropped_eyes[0])
-                print(gaze_vector)
+                print(gaze_vector_filtered)
             else:
                 #TODO Handle multiple people
                 pass
