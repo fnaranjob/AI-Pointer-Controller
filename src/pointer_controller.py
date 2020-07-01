@@ -8,7 +8,7 @@ from input_feeder import InputFeeder
 from face_detection import FaceDetection
 from head_pose_estimation import HeadPoseEstimation
 from facial_landmarks_detection import FacialLandmarksDetection
-import gaze_estimation
+from gaze_estimation import GazeEstimation
 
 #CONSTANTS
 FACE_DETECTION_THRESHOLD = 0.8
@@ -29,6 +29,8 @@ def build_argparser():
                         help="Path to head pose estimation model xml")
     parser.add_argument("--facial_landmarks_model", type=str, required=True,
                         help="Path to facial landmarks detection model xml")
+    parser.add_argument("--gaze_estimation_model", type=str, required=True,
+                        help="Path to gaze estimation model xml")
     parser.add_argument("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
     return parser
@@ -50,6 +52,16 @@ def run_inference(frame, model):
                                             img_height=input_height)
     return processed_output
 
+def run_inference_gaze(left_eye, right_eye, angles, model):
+    left_eye_processed = model.preprocess_input(left_eye)
+    right_eye_processed = model.preprocess_input(right_eye)
+    angles_list = [angles['yaw'], angles['pitch'], angles['roll']]
+    request_handle = model.predict(left_eye_processed, right_eye_processed, angles_list, req_id=0)
+    request_handle.wait()
+    output = model.get_output(request_handle)
+    return output
+
+
 def main():
     args = build_argparser().parse_args()
     single_image_mode = (args.input_type == 'image') 
@@ -69,6 +81,8 @@ def main():
     head_pose_model.load_model(args.device)
     facial_landmarks_model = FacialLandmarksDetection(args.facial_landmarks_model)
     facial_landmarks_model.load_model(args.device)
+    gaze_estimation_model = GazeEstimation(args.gaze_estimation_model)
+    gaze_estimation_model.load_model(args.device)
 
     if not single_image_mode:
         while True:
@@ -85,9 +99,10 @@ def main():
                 head_pose = run_inference(cropped_faces[0], head_pose_model)
                 eye_boxes = run_inference(cropped_faces[0], facial_landmarks_model)
                 cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
+                gaze_vector = run_inference_gaze(cropped_eyes[0], cropped_eyes[1], head_pose, gaze_estimation_model)
                 #debugging output
                 cv2.imshow('face',cropped_eyes[0])
-                print(head_pose)
+                print(gaze_vector)
             else:
                 #TODO Handle multiple people
                 pass
