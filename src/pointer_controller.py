@@ -1,6 +1,7 @@
 import numpy as np
 import logging as log
 import cv2
+import pyautogui
 from argparse import ArgumentParser
 
 import utils
@@ -12,10 +13,15 @@ from gaze_estimation import GazeEstimation
 
 #CONSTANTS
 FACE_DETECTION_THRESHOLD = 0.8
-FILTER_QUANTITY = 5
+FILTER_QUANTITY = 10
 CALIBRATION_FILE = 'calibration.npz'
-SCREEN_X_LIMITS = [0.0, 1920.0]
-SCREEN_Y_LIMITS = [0.0, 1080.0]
+SCREEN_X_LIMITS = [20.0, 1900.0]
+SCREEN_Y_LIMITS = [20.0, 1060.0]
+MOUSE_MOVE_TIME = 0.0 #Seconds
+
+#PYAUTOGUI SETUP
+pyautogui.PAUSE = 0.1
+pyautogui.FAILSAFE = True
 
  
 def build_argparser():
@@ -138,10 +144,12 @@ def main():
                 gaze_vector = run_inference_gaze(cropped_eyes[0], cropped_eyes[1], head_pose, gaze_estimation_model)
                 gaze_vector_accum += gaze_vector
                 screen_x, screen_y = get_screen_position(gaze_vector_filtered[0], gaze_vector_filtered[1], cal_x_limits, cal_y_limits)
+                pyautogui.moveTo(screen_x,screen_y,MOUSE_MOVE_TIME)
+
                 #debugging output
-                cv2.imshow('face',cropped_eyes[0])
+                #cv2.imshow('face',cropped_eyes[0])
                 #print('(',gaze_vector_filtered[0],' , ',gaze_vector_filtered[1],')')
-                print('(',screen_x,' , ',screen_y,')')
+                #print('(',screen_x,' , ',screen_y,')')
             else:
                 #TODO Handle multiple people
                 pass
