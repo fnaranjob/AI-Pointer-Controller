@@ -12,8 +12,12 @@ from gaze_estimation import GazeEstimation
 
 #CONSTANTS
 FACE_DETECTION_THRESHOLD = 0.8
-FILTER_QUANTITY = 10
+FILTER_QUANTITY = 5
+CALIBRATION_FILE = 'calibration.npz'
+SCREEN_X_LIMITS = [0.0, 1920.0]
+SCREEN_Y_LIMITS = [0.0, 1080.0]
 
+ 
 def build_argparser():
     """
     Parse command line arguments.
@@ -35,6 +39,20 @@ def build_argparser():
     parser.add_argument("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
     return parser
+
+def get_calibration():
+    #get calibration values that will be used to scale model output to screen dimensions
+    cal_points = np.load(CALIBRATION_FILE)
+    xmin = (cal_points['top_left'][0] + cal_points['bottom_left'][0])/2
+    xmax = (cal_points['top_right'][0] + cal_points['bottom_right'][0])/2
+    ymin = (cal_points['top_left'][1] + cal_points['top_right'][1])/2
+    ymax = (cal_points['bottom_left'][1] + cal_points['bottom_right'][1])/2
+    return [xmin, xmax], [ymin, ymax]
+
+def get_screen_position(x, y, cal_x_limits, cal_y_limits):
+    screen_x = utils.rescale(x, cal_x_limits, SCREEN_X_LIMITS)
+    screen_y = utils.rescale(y, cal_y_limits, SCREEN_Y_LIMITS)
+    return screen_x, screen_y
 
 def run_inference(frame, model):
     if frame is None:
@@ -90,6 +108,9 @@ def main():
     gaze_vector_accum = [0,0,0]
     gaze_vector_filtered = [0,0,0]
 
+    #get screen calibration
+    cal_x_limits, cal_y_limits = get_calibration()
+
     if not single_image_mode:
         while True:
 
@@ -116,9 +137,11 @@ def main():
                 cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
                 gaze_vector = run_inference_gaze(cropped_eyes[0], cropped_eyes[1], head_pose, gaze_estimation_model)
                 gaze_vector_accum += gaze_vector
+                screen_x, screen_y = get_screen_position(gaze_vector_filtered[0], gaze_vector_filtered[1], cal_x_limits, cal_y_limits)
                 #debugging output
                 cv2.imshow('face',cropped_eyes[0])
-                print(gaze_vector_filtered)
+                #print('(',gaze_vector_filtered[0],' , ',gaze_vector_filtered[1],')')
+                print('(',screen_x,' , ',screen_y,')')
             else:
                 #TODO Handle multiple people
                 pass

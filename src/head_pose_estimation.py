@@ -53,6 +53,5 @@ class HeadPoseEstimation:
         roll=np.squeeze(output['angle_r_fc'])[()]
         pitch=np.squeeze(output['angle_p_fc'])[()]
         yaw=np.squeeze(output['angle_y_fc'])[()]
-        print(type(roll))
         output_dict={'roll':roll, 'pitch':pitch, 'yaw':yaw}
         return output_dict

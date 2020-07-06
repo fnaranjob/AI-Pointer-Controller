@@ -4,6 +4,17 @@ import sys
 
 PADDING_COLOR = [0,0,0]
 
+def rescale(value, input_range, output_range):
+	slope = (output_range[1] - output_range[0]) / (input_range[1] - input_range[0])
+	output = output_range[0] + slope * (value - input_range[0])
+	if output > output_range[1]:
+		output = output_range[1]
+	elif output < output_range[0]:
+		output = output_range[0]
+
+	return output
+
+
 def resize_image(image, height, width):
 	processed_image = np.copy(image)
 	processed_image = cv2.resize(processed_image,(width,height))
