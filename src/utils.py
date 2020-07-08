@@ -3,6 +3,7 @@ import cv2
 import sys
 
 PADDING_COLOR = [0,0,0]
+CALIBRATION_FILE = 'calibration.npz'
 
 def rescale(value, input_range, output_range):
 	slope = (output_range[1] - output_range[0]) / (input_range[1] - input_range[0])
@@ -13,7 +14,6 @@ def rescale(value, input_range, output_range):
 		output = output_range[0]
 
 	return output
-
 
 def resize_image(image, height, width):
 	processed_image = np.copy(image)
@@ -45,3 +45,25 @@ def crop_image(image, boxes):
 			cropped_images.append(image[y1-pad_y:y2+pad_y, x1-pad_x:x2+pad_x])
 
 	return cropped_images
+
+def imshow_fullscreen (winname, img):
+	cv2.namedWindow (winname, cv2.WINDOW_NORMAL)
+	cv2.setWindowProperty (winname, cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+	cv2.imshow (winname, img)
+
+def get_calibration(cal_points = None):
+    #get calibration values that will be used to scale model output to screen dimensions
+    #if no calibration points dictionary is passed in, it will be retrieved from file
+    if cal_points is None:
+    	cal_points = np.load(CALIBRATION_FILE)
+    xmin = (cal_points['top_left'][0] + cal_points['bottom_left'][0])/2
+    xmax = (cal_points['top_right'][0] + cal_points['bottom_right'][0])/2
+    ymin = (cal_points['top_left'][1] + cal_points['top_right'][1])/2
+    ymax = (cal_points['bottom_left'][1] + cal_points['bottom_right'][1])/2
+    return [xmin, xmax], [ymin, ymax]
+
+def save_calibration(cal_points):
+	np.savez(CALIBRATION_FILE, 		top_left=cal_points['top_left'], 
+									top_right=cal_points['top_right'], 
+									bottom_left=cal_points['bottom_left'], 
+									bottom_right=cal_points['bottom_right'])

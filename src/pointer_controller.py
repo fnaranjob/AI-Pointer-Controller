@@ -13,11 +13,18 @@ from gaze_estimation import GazeEstimation
 
 #CONSTANTS
 FACE_DETECTION_THRESHOLD = 0.8
-FILTER_QUANTITY = 10
-CALIBRATION_FILE = 'calibration.npz'
-SCREEN_X_LIMITS = [20.0, 1900.0]
-SCREEN_Y_LIMITS = [20.0, 1060.0]
+FILTER_QUANTITY = 1 #FILTER_QUANTITY samples will be averaged to stabilize mouse position
 MOUSE_MOVE_TIME = 0.0 #Seconds
+SCREEN_WIDTH = pyautogui.size().width
+SCREEN_HEIGHT = pyautogui.size().height
+SCREEN_X_LIMITS = [10.0, SCREEN_WIDTH-10]
+SCREEN_Y_LIMITS = [10, SCREEN_HEIGHT-10]
+COLORS = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,0,255),(255,255,255),(128,0,0),(0,128,0),(0,0,128)]
+LINE_THICKNESS = -1 #filled
+FONT_THICKNESS = 2
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 1.5
+BOX_SIDE_LENGTH = 80
 
 #PYAUTOGUI SETUP
 pyautogui.PAUSE = 0.1
@@ -44,21 +51,25 @@ def build_argparser():
                         help="Path to gaze estimation model xml")
     parser.add_argument("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
+    parser.add_argument("-c", "--calibrate", action='store_true',
+                        help="Run calibration")
     return parser
-
-def get_calibration():
-    #get calibration values that will be used to scale model output to screen dimensions
-    cal_points = np.load(CALIBRATION_FILE)
-    xmin = (cal_points['top_left'][0] + cal_points['bottom_left'][0])/2
-    xmax = (cal_points['top_right'][0] + cal_points['bottom_right'][0])/2
-    ymin = (cal_points['top_left'][1] + cal_points['top_right'][1])/2
-    ymax = (cal_points['bottom_left'][1] + cal_points['bottom_right'][1])/2
-    return [xmin, xmax], [ymin, ymax]
 
 def get_screen_position(x, y, cal_x_limits, cal_y_limits):
     screen_x = utils.rescale(x, cal_x_limits, SCREEN_X_LIMITS)
     screen_y = utils.rescale(y, cal_y_limits, SCREEN_Y_LIMITS)
     return screen_x, screen_y
+
+def get_base_img(line1, line2, color):
+    base_img = np.zeros([SCREEN_HEIGHT,SCREEN_WIDTH,3],dtype=np.uint8)
+    base_img.fill(255)
+    line1_size, _ = cv2.getTextSize(line1,FONT,FONT_SCALE,FONT_THICKNESS)
+    line2_size, _ = cv2.getTextSize(line2,FONT,FONT_SCALE,FONT_THICKNESS)
+    line1_x = (SCREEN_WIDTH - line1_size[0])//2
+    line2_x = (SCREEN_WIDTH - line2_size[0])//2
+    cv2.putText(base_img, line1, (line1_x,SCREEN_HEIGHT//2-20), FONT, FONT_SCALE, color, FONT_THICKNESS)
+    cv2.putText(base_img, line2, (line2_x,SCREEN_HEIGHT//2+20), FONT, FONT_SCALE, color, FONT_THICKNESS)
+    return base_img
 
 def run_inference(frame, model):
     if frame is None:
@@ -113,9 +124,35 @@ def main():
     count = 0
     gaze_vector_accum = [0,0,0]
     gaze_vector_filtered = [0,0,0]
-
+    
     #get screen calibration
-    cal_x_limits, cal_y_limits = get_calibration()
+    if not args.calibrate:
+        run_calibration = False
+        cal_x_limits, cal_y_limits = utils.get_calibration()
+    else:
+        run_calibration = True
+        update_display = True
+        
+        #squares to draw on screen for calibration
+        top_left_square = {'pt1':(0,0), 'pt2':(BOX_SIDE_LENGTH,BOX_SIDE_LENGTH)}
+        top_right_square = {'pt1':(SCREEN_WIDTH - BOX_SIDE_LENGTH,0), 'pt2':(SCREEN_WIDTH, BOX_SIDE_LENGTH)}
+        bottom_left_square = {'pt1':(0,SCREEN_HEIGHT - BOX_SIDE_LENGTH), 'pt2':(BOX_SIDE_LENGTH,SCREEN_HEIGHT)}
+        bottom_right_square =   {'pt1':(SCREEN_WIDTH - BOX_SIDE_LENGTH,SCREEN_HEIGHT - BOX_SIDE_LENGTH), 
+                                'pt2':(SCREEN_WIDTH,SCREEN_HEIGHT)}
+        cal_squares = [top_left_square,top_right_square,bottom_left_square, bottom_right_square]
+        
+        #names of the calibration points for storing on calibration file
+        cal_names = ['top_left', 'top_right', 'bottom_left', 'bottom_right']
+        
+        #model output values for each calibration point will be stored here
+        cal_points = {}
+
+        square_iter = iter(cal_squares)
+        name_iter = iter(cal_names)
+        
+        #image to display on screen for calibration
+        base_img = get_base_img("LOOK AT THE SQUARES FOR 2 SECONDS","AND THEN PRESS n", COLORS[0])
+        
 
     if not single_image_mode:
         while True:
@@ -135,31 +172,60 @@ def main():
             
             if cropped_faces==0: #no face detected, nothing to process
                 continue
+
             elif cropped_faces is None: #finished reading input feed
                 break
-            elif len(cropped_faces)==1:
+
+            elif len(cropped_faces)==1: #found a single face in the frame, proceed
                 head_pose = run_inference(cropped_faces[0], head_pose_model)
                 eye_boxes = run_inference(cropped_faces[0], facial_landmarks_model)
                 cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
                 gaze_vector = run_inference_gaze(cropped_eyes[0], cropped_eyes[1], head_pose, gaze_estimation_model)
                 gaze_vector_accum += gaze_vector
-                screen_x, screen_y = get_screen_position(gaze_vector_filtered[0], gaze_vector_filtered[1], cal_x_limits, cal_y_limits)
-                pyautogui.moveTo(screen_x,screen_y,MOUSE_MOVE_TIME)
+                
+                if run_calibration:
+                    
+                    if update_display:
+                        img = np.copy(base_img)
+                        square = next(square_iter, None)
+                        if not square is None: 
+                            cv2.rectangle(img,square['pt1'], square['pt2'],COLORS[0],-1)
+                            update_display=False
+                        else: #Done with calibration
+                            cal_x_limits, cal_y_limits = utils.get_calibration(cal_points)
+                            utils.save_calibration(cal_points)
+                            run_calibration=False
 
-                #debugging output
-                #cv2.imshow('face',cropped_eyes[0])
-                #print('(',gaze_vector_filtered[0],' , ',gaze_vector_filtered[1],')')
-                #print('(',screen_x,' , ',screen_y,')')
+                    utils.imshow_fullscreen('window',img)
+
+                    if cv2.waitKey(1) & 0xFF == ord('n'):
+                        update_display = True
+                        point = np.array([ gaze_vector_filtered[0], gaze_vector_filtered[1] ])
+                        point_name = next(name_iter)
+                        cal_points[point_name] = point
+                    
+                else:
+                    img = get_base_img("GAZE CONTROL ENABLED", "MOVE MOUSE TO ANY CORNER OR PRESS q TO EXIT", COLORS[1])
+                    utils.imshow_fullscreen('window',img)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        print("User terminated program, goodbye")
+                        break
+                    screen_x, screen_y = get_screen_position(gaze_vector_filtered[0], gaze_vector_filtered[1], cal_x_limits, cal_y_limits)
+                
+                    try:
+                        pyautogui.moveTo(screen_x,screen_y,MOUSE_MOVE_TIME)
+                    except pyautogui.FailSafeException:
+                        print("User terminated program, goodbye")
+                        break
+
             else:
-                #TODO Handle multiple people
-                pass
-            
-            #Quit app if q is pressed
-            k = cv2.waitKey(1) & 0xFF
-            if k == ord('q'):
+                #Handle multiple people here if needed
+                log.critical("ERROR: Multiple people detected")
                 break
+            
     else:
-        pass
+        #Implement single image mode here if needed
+        log.critical("ERROR: Single image mode not implemented")
 
     input_feed.close()
     cv2.destroyAllWindows()
