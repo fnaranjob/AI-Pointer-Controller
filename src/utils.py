@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import logging as log
 
 PADDING_COLOR = [0,0,0]
 CALIBRATION_FILE = 'calibration.npz'
@@ -55,7 +56,12 @@ def get_calibration(cal_points = None):
     #get calibration values that will be used to scale model output to screen dimensions
     #if no calibration points dictionary is passed in, it will be retrieved from file
     if cal_points is None:
-    	cal_points = np.load(CALIBRATION_FILE)
+    	try:
+    		cal_points = np.load(CALIBRATION_FILE)
+    	except IOError:
+    		log.critical("ERROR: Couldn't open calibration file, use --calibrate first")
+    		exit()
+
     xmin = (cal_points['top_left'][0] + cal_points['bottom_left'][0])/2
     xmax = (cal_points['top_right'][0] + cal_points['bottom_right'][0])/2
     ymin = (cal_points['top_left'][1] + cal_points['top_right'][1])/2
