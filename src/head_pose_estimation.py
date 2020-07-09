@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 import sys
 import utils
+import logging as log
 from openvino.inference_engine import IECore
 
 
@@ -34,7 +35,8 @@ class HeadPoseEstimation:
         if(self.__check_layers__()):
             self.exec_net=self.IE.load_network(network=self.net,device_name=device_name,num_requests=1)
         else:
-            sys.exit("Unsupported layer found, can't continue")
+            log.critical("Unsupported layer found, can't continue")
+            exit()
 
     def predict(self, image, req_id):
         input_name = next(iter(self.net.inputs))

@@ -3,7 +3,6 @@ import logging as log
 import cv2
 import pyautogui
 import configargparse
-#from argparse import ArgumentParser
 
 import utils
 from input_feeder import InputFeeder 
@@ -163,7 +162,6 @@ def main():
             #filter results
             count += 1
             if(count>FILTER_QUANTITY):
-                print(gaze_vector_accum)
                 gaze_vector_filtered=gaze_vector_accum/FILTER_QUANTITY
                 gaze_vector_accum=np.array([0,0,0],dtype='float64')
                 count=0
