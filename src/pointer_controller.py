@@ -2,7 +2,8 @@ import numpy as np
 import logging as log
 import cv2
 import pyautogui
-from argparse import ArgumentParser
+import configargparse
+#from argparse import ArgumentParser
 
 import utils
 from input_feeder import InputFeeder 
@@ -36,7 +37,7 @@ def build_argparser():
     Parse command line arguments.
     :return: command line arguments
     """
-    parser = ArgumentParser("AI gaze mouse pointer controller")
+    parser = configargparse.ArgumentParser("AI gaze mouse pointer controller")
     parser.add_argument("-t", "--input_type", required=True, type=str,
                         help="Input type, use 'cam' for camera, 'image' for single image, 'video' for video file")
     parser.add_argument("-p", "--input_path", type=str, default=None, 
@@ -51,7 +52,7 @@ def build_argparser():
                         help="Path to gaze estimation model xml")
     parser.add_argument("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
-    parser.add_argument("-c", "--calibrate", action='store_true',
+    parser.add_argument("--calibrate", action='store_true',
                         help="Run calibration")
     return parser
 
