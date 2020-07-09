@@ -38,22 +38,24 @@ def build_argparser():
     :return: command line arguments
     """
     parser = configargparse.ArgumentParser("AI gaze mouse pointer controller")
-    parser.add_argument("-t", "--input_type", required=True, type=str,
+    parser.add("-c", "--config_file", is_config_file=True,
+                        help="Path to config file")
+    parser.add("-t", "--input_type", required=True, type=str, default='cam',
                         help="Input type, use 'cam' for camera, 'image' for single image, 'video' for video file")
-    parser.add_argument("-p", "--input_path", type=str, default=None, 
+    parser.add("-p", "--input_path", type=str, default=None, 
     					help="Path to input, unused if input_type='cam'")
-    parser.add_argument("--face_detection_model", type=str, required = True,
+    parser.add("--face_detection_model", type=str, required=True,
                         help="Path to face detection model xml")
-    parser.add_argument("--head_pose_model", type=str, required=True,
+    parser.add("--head_pose_model", type=str, required=True,
                         help="Path to head pose estimation model xml")
-    parser.add_argument("--facial_landmarks_model", type=str, required=True,
+    parser.add("--facial_landmarks_model", type=str, required=True,
                         help="Path to facial landmarks detection model xml")
-    parser.add_argument("--gaze_estimation_model", type=str, required=True,
+    parser.add("--gaze_estimation_model", type=str, required=True,
                         help="Path to gaze estimation model xml")
-    parser.add_argument("-d", "--device", type=str, default='CPU',
+    parser.add("-d", "--device", type=str, default='CPU',
                         help="Device to run inference on")
-    parser.add_argument("--calibrate", action='store_true',
-                        help="Run calibration")
+    parser.add("--calibrate", action='store_true',
+                        help="Run camera calibration")
     return parser
 
 def get_screen_position(x, y, cal_x_limits, cal_y_limits):
@@ -96,7 +98,7 @@ def run_inference_gaze(left_eye, right_eye, angles, model):
     request_handle = model.predict(left_eye_processed, right_eye_processed, angles_list, req_id=0)
     request_handle.wait()
     output = model.get_output(request_handle)
-    return output
+    return np.array(output)
 
 
 def main():
@@ -123,8 +125,8 @@ def main():
 
     #initialize frame count for filtering
     count = 0
-    gaze_vector_accum = [0,0,0]
-    gaze_vector_filtered = [0,0,0]
+    gaze_vector_accum = np.array([0,0,0],dtype='float64')
+    gaze_vector_filtered = np.array([0,0,0],dtype='float64')
     
     #get screen calibration
     if not args.calibrate:
@@ -161,8 +163,9 @@ def main():
             #filter results
             count += 1
             if(count>FILTER_QUANTITY):
+                print(gaze_vector_accum)
                 gaze_vector_filtered=gaze_vector_accum/FILTER_QUANTITY
-                gaze_vector_accum=[0,0,0]
+                gaze_vector_accum=np.array([0,0,0],dtype='float64')
                 count=0
 
             #process frames
