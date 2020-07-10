@@ -1,1 +1,0 @@
-python pointer_controller.py -c "config.conf" --calibrate
