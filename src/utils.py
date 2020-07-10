@@ -6,6 +6,13 @@ import logging as log
 PADDING_COLOR = [0,0,0]
 CALIBRATION_FILE = 'calibration.npz'
 
+COLORS = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,0,255),(255,255,255),(128,0,0),(0,128,0),(0,0,128)]
+LINE_THICKNESS = 1
+FONT_THICKNESS = 1
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+FONT_SCALE = 0.5
+BOX_SIDE_LENGTH = 80
+
 def rescale(value, input_range, output_range):
 	slope = (output_range[1] - output_range[0]) / (input_range[1] - input_range[0])
 	output = output_range[0] + slope * (value - input_range[0])
@@ -73,3 +80,43 @@ def save_calibration(cal_points):
 									top_right=cal_points['top_right'], 
 									bottom_left=cal_points['bottom_left'], 
 									bottom_right=cal_points['bottom_right'])
+
+
+def display_inference_results(frame, face_boxes, head_pose, gaze_vector, inference_time):
+	img = np.copy(frame)
+
+	#Highlight detected face and eyes
+	cv2.rectangle(img, face_boxes[0]['pt1'], face_boxes[0]['pt2'],COLORS[0],LINE_THICKNESS)
+
+	#flip horizontally to match cursor position
+	flipped_img=cv2.flip(img,1)
+
+	#Show head pose output:
+	cv2.putText(flipped_img, 
+		"Head pose: Roll = {:.1f}, Pitch = {:.1f} Yaw = {:.1f}".format(head_pose['roll'],head_pose['pitch'],head_pose['yaw']), 
+		(10,20), 
+		FONT, 
+		FONT_SCALE, 
+		COLORS[2], 
+		FONT_THICKNESS)
+
+	#Show gaze estimation output:
+	cv2.putText(flipped_img, 
+		"Gaze vector: ({:.1f}, {:.1f}, {:.1f})".format(gaze_vector[0],gaze_vector[1],gaze_vector[2]), 
+		(10,40), 
+		FONT, 
+		FONT_SCALE, 
+		COLORS[2], 
+		FONT_THICKNESS)
+		
+	#Show total inference time:
+	cv2.putText(flipped_img, 
+		"Total inference time: {:d} msec".format(int(inference_time*1000)), 
+		(10,60), 
+		FONT, 
+		FONT_SCALE, 
+		COLORS[2], 
+		FONT_THICKNESS)
+	
+
+	cv2.imshow('window',flipped_img)

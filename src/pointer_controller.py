@@ -3,6 +3,7 @@ import logging as log
 import cv2
 import pyautogui
 import configargparse
+import time
 
 import utils
 from input_feeder import InputFeeder 
@@ -30,7 +31,6 @@ BOX_SIDE_LENGTH = 80
 pyautogui.PAUSE = 0.1
 pyautogui.FAILSAFE = True
 
- 
 def build_argparser():
     """
     Parse command line arguments.
@@ -55,6 +55,8 @@ def build_argparser():
                         help="Device to run inference on")
     parser.add("--calibrate", action='store_true',
                         help="Run camera calibration")
+    parser.add("--display_all", action='store_true',
+                        help="Display all models' outputs")
     return parser
 
 def get_screen_position(x, y, cal_x_limits, cal_y_limits):
@@ -169,6 +171,7 @@ def main():
             #process frames
             frame = next(input_feed.next_batch())
             
+            start_time=time.time()
             face_boxes = run_inference(frame, face_model)
             cropped_faces = utils.crop_image(frame,face_boxes)
             
@@ -179,10 +182,14 @@ def main():
                 break
 
             elif len(cropped_faces)==1: #found a single face in the frame, proceed
+                
                 head_pose = run_inference(cropped_faces[0], head_pose_model)
                 eye_boxes = run_inference(cropped_faces[0], facial_landmarks_model)
                 cropped_eyes = utils.crop_image(cropped_faces[0], eye_boxes)
                 gaze_vector = run_inference_gaze(cropped_eyes[0], cropped_eyes[1], head_pose, gaze_estimation_model)
+                
+                inference_time=time.time()-start_time
+                
                 gaze_vector_accum += gaze_vector
                 
                 if run_calibration:
@@ -207,11 +214,18 @@ def main():
                         cal_points[point_name] = point
                     
                 else:
-                    img = get_base_img("GAZE CONTROL ENABLED", "MOVE MOUSE TO ANY CORNER OR PRESS q TO EXIT", COLORS[1])
-                    utils.imshow_fullscreen('window',img)
+                    
+                    if not args.display_all:
+                        img = get_base_img("GAZE CONTROL ENABLED", "MOVE MOUSE TO ANY CORNER OR PRESS q TO EXIT", COLORS[1])
+                        utils.imshow_fullscreen('window',img)
+                    else:
+                        utils.display_inference_results(frame, face_boxes, head_pose, gaze_vector, inference_time)
+
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         print("User terminated program, goodbye")
                         break
+                    
+
                     screen_x, screen_y = get_screen_position(gaze_vector_filtered[0], gaze_vector_filtered[1], cal_x_limits, cal_y_limits)
                 
                     try:
