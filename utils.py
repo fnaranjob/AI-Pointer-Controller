@@ -83,6 +83,9 @@ def save_calibration(cal_points):
 
 
 def display_inference_results(frame, face_boxes, head_pose, gaze_vector, inference_time):
+	
+	cv2.namedWindow ('window', cv2.WINDOW_NORMAL)
+	cv2.setWindowProperty ('window', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 	img = np.copy(frame)
 
 	#Highlight detected face and eyes
