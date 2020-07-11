@@ -1,11 +1,60 @@
 # Computer Pointer Controller
 
-*TODO:* Write a short introduction to your project
+This is an AI computer pointer controller written in Python, it allows you to move your mouse pointer using your gaze, it uses Intel's OpenVino Toolkit to perform inference on video feed from a webcam, however, running it is also possible using pre recorded video.
+
+*WARNING*: notice that OpenVino uses OpenCV to process video feed, so, not all video formats might be compatible with your system, and this varies between different OSs (Windows, for example, only supports .AVI videos)
+
+
 
 ## Project Set Up and Installation
-*TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
+
+
+
+### 1 - Install OpenVino Toolkit
+
+Follow the instructions for your OS here:
+
+* [Linux](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux.html)
+* [Windows](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_windows.html)
+* [MacOS](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_macos.html)
+
+
+
+### 2 - Download models
+
+This app requires 4 pretrained models to run, you can find the used models docs here:
+
+* [Face Detection model](https://docs.openvinotoolkit.org/latest/_models_intel_face_detection_adas_binary_0001_description_face_detection_adas_binary_0001.html)
+* [Head Pose Estimation model](https://docs.openvinotoolkit.org/latest/_models_intel_head_pose_estimation_adas_0001_description_head_pose_estimation_adas_0001.html)
+* [Facial Landmarks Detection model](https://docs.openvinotoolkit.org/latest/_models_intel_landmarks_regression_retail_0009_description_landmarks_regression_retail_0009.html)
+* [Gaze Estimation model](https://docs.openvinotoolkit.org/latest/_models_intel_gaze_estimation_adas_0002_description_gaze_estimation_adas_0002.html)
+
+You can use OpenVino's [Model Downloader](https://docs.openvinotoolkit.org/latest/_tools_downloader_README.html) to get these models, as they all are part of [Intel's Open Model Zoo](https://docs.openvinotoolkit.org/latest/_models_intel_index.html)
+
+
+
+### 3 - Clone or download source code
+
+This repo contains all source code required to run this application, create a folder to contain all required files and either clone this repo in it or download the source files as a ZIP file and extract them
+
+
+
+### 4 - If not already installed, install Python 3
+
+To run this application, your system has to have Python3 installed and added to your PATH, see instructions [here](https://www.tutorialspoint.com/python/python_environment.htm)
+
+
+
+### 5 - Install all dependencies
+
+Inside your source folder you will find a requirements.txt file that contains a list of all modules required to run the application, to install the required modules, open a terminal/command prompt, navigate you the folder that contains all the source files and run:
+
+`pip install requirements.txt`
+
+
 
 ## Demo
+
 *TODO:* Explain how to run a basic demo of your model.
 
 ## Documentation
