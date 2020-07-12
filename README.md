@@ -51,13 +51,35 @@ To run this application, your system needs Python3 installed and added to your P
 
 
 
-### 5 - Install all dependencies
+### 5 - Create a new python virtual environment for the project
+
+If you are, or plan to be working on other python projects on your system, creating a virtual environment is highly recommended,  if you're new to virtual environments check a quick tutorial [here](https://realpython.com/python-virtual-environments-a-primer/) for more details, for a quick start just use the following commands on your terminal/command prompt to create and activate the new virtual environment (replace `<venv>` with the path to your source folder)
+
+
+
+* To create it
+
+  `python -m venv <venv>`
+
+* To activate it:
+
+  On Windows (cmd.exe): `<venv>\Scripts\activate.bat`
+
+  On Linux/MacOS (bash): `source <venv>/bin/activate`
+
+  
+
+Make sure you have completed this step before moving on
+
+
+
+### 6 - Install all dependencies
 
 Inside your source folder you will find a requirements.txt file that contains a list of all modules required to run the application, to install the required modules, open a terminal/command prompt, navigate to the folder that contains all the source files you cloned earlier and run:
 
 `pip install -r requirements.txt`
 
-*NOTE*: If you are, or plan to be working on other python projects on your system, creating a virtual environment for this one is highly recommended, if you don't know how to do this check a quick tutorial [here](https://realpython.com/python-virtual-environments-a-primer/), do this before you install this project's dependencies to avoid reinstalling other versions of modules that might already be installed on your system
+
 
 
 
@@ -137,7 +159,7 @@ To run the application, you'll need to provide, as a minimum, one command line a
 
 If everything was done correctly, you should see a white screen like this one:
 
-![running](.\images\running.png)
+![running](./images/running.png)
 
 
 
@@ -178,7 +200,7 @@ This project supports the following command line arguments:
 
 In order to make the application more accurate, if you're using camera feed input, you can calibrate the application to your particular screen an camera, to do this, run the application using the --calibrate command line argument, if you do, you will see the following screen:
 
-![calibration](.\images\calibration.png)
+![calibration](./images/calibration.png)
 
 A blue square will appear at each corner of the screen, you need to look at it for a couple seconds, and while looking at it press 'n' on your keyboard, repeat this for every corner and the application will scale the inference output to match your screen and camera, this will give you better control of the pointer
 
