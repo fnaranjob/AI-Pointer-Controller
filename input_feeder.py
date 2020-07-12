@@ -44,7 +44,7 @@ class InputFeeder:
                 yield frame
         else:
             log.critical("Illegal call, method only supported for 'video' and 'cam' input types")
-            exit()
+            sys.exit(1)
 
     def is_open(self):
         if self.input_type == 'video' or self.input_type == 'cam':

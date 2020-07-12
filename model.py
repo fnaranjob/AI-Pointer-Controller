@@ -31,7 +31,7 @@ class Model:
             self.exec_net=self.IE.load_network(network=self.net,device_name=device_name,num_requests=1)
         else:
             log.critical("Unsupported layer found, can't continue")
-            exit()
+            sys.exit(1)
 
     def predict(self, image, req_id):
         input_name = next(iter(self.net.inputs))

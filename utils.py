@@ -67,7 +67,7 @@ def get_calibration(cal_points = None):
     		cal_points = np.load(CALIBRATION_FILE)
     	except IOError:
     		log.critical("ERROR: Couldn't open calibration file, use --calibrate first")
-    		exit()
+    		sys.exit(1)
 
     xmin = (cal_points['top_left'][0] + cal_points['bottom_left'][0])/2
     xmax = (cal_points['top_right'][0] + cal_points['bottom_right'][0])/2

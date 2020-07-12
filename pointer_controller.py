@@ -112,7 +112,7 @@ def main():
 
     if not input_feed.is_open():
         log.critical('Error opening input, check --input_path parameter (use --help for more info)')
-        exit()
+        sys.exit(1)
 
     #Load models
     face_model = FaceDetection(args.face_detection_model)
@@ -236,12 +236,13 @@ def main():
 
             else:
                 #Handle multiple people here if needed
-                log.critical("ERROR: Multiple people detected")
-                break
+                log.critical("ERROR: Multiple people detected, only single person supported")
+                sys.exit(1)
             
     else:
         #Implement single image mode here if needed
         log.critical("ERROR: Single image mode not implemented")
+        sys.exit(1)
 
     input_feed.close()
     cv2.destroyAllWindows()
